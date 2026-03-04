@@ -8,17 +8,12 @@ function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
 
-  /* =========================
-     LOAD USER + THEME
-  ========================= */
+  /* LOAD USER */
   useEffect(() => {
     const loadUser = () => {
       const storedUser = localStorage.getItem("user");
-      if (storedUser) {
-        setUser(JSON.parse(storedUser));
-      } else {
-        setUser(null);
-      }
+      if (storedUser) setUser(JSON.parse(storedUser));
+      else setUser(null);
     };
 
     loadUser();
@@ -29,6 +24,7 @@ function Navbar() {
     };
   }, []);
 
+  /* LOAD THEME */
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme");
     if (savedTheme === "dark") {
@@ -37,9 +33,6 @@ function Navbar() {
     }
   }, []);
 
-  /* =========================
-     TOGGLE THEME
-  ========================= */
   const toggleTheme = () => {
     if (darkMode) {
       document.documentElement.classList.remove("dark");
@@ -68,6 +61,7 @@ function Navbar() {
           JobBoard
         </Link>
 
+        {/* Desktop Menu */}
         <div className="hidden md:flex items-center space-x-6">
 
           <Link to="/jobs" className="text-gray-600 dark:text-gray-300">
@@ -102,7 +96,6 @@ function Navbar() {
             </>
           )}
 
-          {/* 🔥 DARK MODE BUTTON */}
           <button
             onClick={toggleTheme}
             className="p-2 rounded-full bg-gray-200 dark:bg-gray-700"
@@ -131,6 +124,7 @@ function Navbar() {
           )}
         </div>
 
+        {/* Mobile Menu Button */}
         <button
           onClick={() => setMenuOpen(!menuOpen)}
           className="md:hidden text-gray-700 dark:text-gray-300"
@@ -138,6 +132,63 @@ function Navbar() {
           {menuOpen ? <X size={28} /> : <Menu size={28} />}
         </button>
       </div>
+
+      {/* MOBILE MENU */}
+      {menuOpen && (
+        <div className="md:hidden px-6 pb-4 flex flex-col space-y-4 bg-white dark:bg-gray-900">
+
+          <Link to="/jobs" onClick={() => setMenuOpen(false)}>
+            Jobs
+          </Link>
+
+          {user?.role === "candidate" && (
+            <>
+              <Link to="/my-applications" onClick={() => setMenuOpen(false)}>
+                My Applications
+              </Link>
+              <Link to="/profile" onClick={() => setMenuOpen(false)}>
+                Profile
+              </Link>
+            </>
+          )}
+
+          {(user?.role === "recruiter" || user?.role === "admin") && (
+            <>
+              <Link to="/dashboard" onClick={() => setMenuOpen(false)}>
+                Dashboard
+              </Link>
+              <Link to="/my-jobs" onClick={() => setMenuOpen(false)}>
+                My Jobs
+              </Link>
+              <Link to="/post" onClick={() => setMenuOpen(false)}>
+                Post Job
+              </Link>
+            </>
+          )}
+
+          <button onClick={toggleTheme}>
+            {darkMode ? "Light Mode" : "Dark Mode"}
+          </button>
+
+          {!user ? (
+            <>
+              <Link to="/login" onClick={() => setMenuOpen(false)}>
+                Login
+              </Link>
+              <Link to="/register" onClick={() => setMenuOpen(false)}>
+                Register
+              </Link>
+            </>
+          ) : (
+            <>
+              <span>{user.name}</span>
+              <button onClick={logout} className="text-red-600">
+                Logout
+              </button>
+            </>
+          )}
+        </div>
+      )}
     </nav>
   );
 }
