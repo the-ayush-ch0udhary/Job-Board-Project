@@ -7,82 +7,77 @@ function ApplyJob() {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const [form, setForm] = useState({
-    name: "",
-    email: "",
-    resume: "",
-    coverLetter: "",
-  });
-
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
+  const [resume, setResume] = useState(null);
+  const [coverLetter, setCoverLetter] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const submitApplication = async (e) => {
     e.preventDefault();
 
+    if (!resume) {
+      toast.error("Please upload resume (PDF)");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("jobId", id);
+    formData.append("resume", resume);
+    formData.append("coverLetter", coverLetter);
+
     try {
-      await api.post("/applications", {
-        jobId: id,
-        ...form,
+      setLoading(true);
+
+      await api.post("/applications", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
       });
 
       toast.success("Application submitted successfully!");
-
-      setTimeout(() => {
-        navigate("/jobs");
-      }, 800);
+      setTimeout(() => navigate("/jobs"), 800);
     } catch (error) {
-      toast.error("Error submitting application");
+      toast.error(error.response?.data?.message || "Submission failed");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="max-w-xl mx-auto mt-10 bg-white p-8 rounded-lg shadow">
-      <h2 className="text-2xl font-bold mb-6">Apply for Job</h2>
+    <div className="bg-gray-50 dark:bg-gray-900 min-h-screen py-16">
+      <div className="max-w-xl mx-auto px-6">
 
-      <form onSubmit={submitApplication} className="space-y-4">
-        <input
-          type="text"
-          name="name"
-          placeholder="Your Name"
-          onChange={handleChange}
-          required
-          className="w-full p-3 border rounded"
-        />
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-10">
 
-        <input
-          type="email"
-          name="email"
-          placeholder="Your Email"
-          onChange={handleChange}
-          required
-          className="w-full p-3 border rounded"
-        />
+          <h2 className="text-3xl font-bold mb-8 text-gray-800 dark:text-white text-center">
+            Apply for This Job
+          </h2>
 
-        <input
-          type="text"
-          name="resume"
-          placeholder="Resume Link"
-          onChange={handleChange}
-          required
-          className="w-full p-3 border rounded"
-        />
+          <form onSubmit={submitApplication} className="space-y-6">
 
-        <textarea
-          name="coverLetter"
-          placeholder="Cover Letter"
-          onChange={handleChange}
-          className="w-full p-3 border rounded"
-        />
+            <input
+              type="file"
+              accept="application/pdf"
+              onChange={(e) => setResume(e.target.files[0])}
+              className="w-full p-3 border rounded-lg bg-white dark:bg-gray-700 dark:text-white dark:border-gray-600"
+            />
 
-        <button
-          type="submit"
-          className="w-full bg-blue-600 text-white py-3 rounded hover:bg-blue-700 transition"
-        >
-          Submit Application
-        </button>
-      </form>
+            <textarea
+              value={coverLetter}
+              onChange={(e) => setCoverLetter(e.target.value)}
+              rows="4"
+              className="w-full p-3 border rounded-lg bg-white dark:bg-gray-700 dark:text-white dark:border-gray-600"
+            />
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-blue-600 text-white py-3 rounded-full hover:bg-blue-700 transition"
+            >
+              {loading ? "Submitting..." : "Submit Application"}
+            </button>
+
+          </form>
+
+        </div>
+      </div>
     </div>
   );
 }

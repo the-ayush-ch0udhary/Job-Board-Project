@@ -7,10 +7,27 @@ const applicationSchema = new mongoose.Schema(
             ref: "Job",
             required: true,
         },
-        name: String,
-        email: String,
-        resume: String,
-        coverLetter: String,
+
+        userId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User",
+            required: true,
+        },
+
+        resume: {
+            type: String,
+            required: true,
+        },
+
+        coverLetter: {
+            type: String,
+        },
+
+        status: {
+            type: String,
+            enum: ["Applied", "Shortlisted", "Interview", "Rejected", "Hired"],
+            default: "Applied",
+        },
     },
     { timestamps: true }
 );
